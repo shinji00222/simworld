@@ -1,0 +1,44 @@
+{
+  "name": "dsh-plugin-simworld",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "DeepSeek Harness 模拟实验室",
+  "main": "./src/host.mjs",
+  "exports": {
+    ".": "./src/host.mjs",
+    "./client": "./dist/client.js",
+    "./core": "./src/core.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src/core.mjs",
+    "src/scenes.mjs",
+    "src/host.mjs",
+    "dist",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ]
+    },
+    "manifestVersion": 1
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "esbuild": "0.27.7"
+  }
+}
