@@ -53,3 +53,14 @@ test('cafeteria applies patience, arrival and window capacity', () => {
   assert.throws(() => runComparison({ ...draft, baseline: 999 }), /基准/)
   assert.throws(() => runComparison({ ...draft, duration: '' }), /时长/)
 })
+
+test('scene names round-trip independently of simulation rules', () => {
+  const config = createDraft('market')
+  const original = runComparison(config)
+  const renamed = runComparison({ ...config, sceneName: '  周末市集  ' })
+  assert.equal(renamed.sceneName, '周末市集')
+  assert.deepEqual(renamed.results, original.results)
+  assert.equal(runComparison({ ...config, sceneName: undefined }).sceneName, '小型市场')
+  assert.equal(runComparison({ ...config, sceneName: '   ' }).sceneName, '小型市场')
+  assert.throws(() => runComparison({ ...config, sceneName: '市'.repeat(81) }), /场景名称/)
+})

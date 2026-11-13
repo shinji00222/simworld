@@ -10,6 +10,7 @@ function validate(config) {
   const { scene, seed, duration, agents, scenarios } = config ?? {}
   const spec = Object.hasOwn(scenes, scene) && scenes[scene]
   if (!spec) throw new Error('请选择有效场景')
+  if (config.sceneName !== undefined && (typeof config.sceneName !== 'string' || config.sceneName.length > 80)) throw new Error('场景名称最多 80 字')
   integer(seed, 0, 4294967295, '随机种子')
   integer(duration, ...spec.duration.slice(2), spec.duration[0])
   if (!Array.isArray(agents) || agents.length < 1 || agents.length > 500) throw new Error('Agent 数量须在 1 到 500 之间')
@@ -116,7 +117,7 @@ export function runComparison(config) {
   validate(config)
   const run = config.scene === 'cafeteria' ? runCafeteria : runMarket
   return {
-    scene: config.scene, seed: config.seed, duration: config.duration, baseline: config.baseline,
+    scene: config.scene, sceneName: config.sceneName?.trim() || scenes[config.scene].name, seed: config.seed, duration: config.duration, baseline: config.baseline,
     results: config.scenarios.map(plan => ({ id: plan.id, name: plan.name.trim(), ...run(config, plan) })),
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-simworld",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "DeepSeek Harness 模拟实验室",

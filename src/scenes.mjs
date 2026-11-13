@@ -47,7 +47,7 @@ export function createDraft(scene) {
   const spec = scenes[scene]
   const templates = Object.keys(spec.templates)
   return {
-    scene, duration: spec.duration[1], seed: 42, baseline: 1,
+    scene, sceneName: spec.name, duration: spec.duration[1], seed: 42, baseline: 1,
     agents: templates.flatMap((template, index) => makeAgents(scene, template, 8, index * 8)),
     scenarios: [
       { id: 1, name: '现状', ...defaultSettings(scene) },

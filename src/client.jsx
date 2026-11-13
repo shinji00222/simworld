@@ -94,7 +94,7 @@ function Results({ run }) {
   const pageSize = 20
 
   return <section className="sw-block" aria-label="实验结果">
-    <div className="sw-heading"><h2>实验结果</h2><span>种子 {run.seed} · {run.duration} {run.scene === 'cafeteria' ? '分钟' : '天'}</span></div>
+    <div className="sw-heading"><h2>实验结果</h2><span>{run.sceneName} · 种子 {run.seed} · {run.duration} {run.scene === 'cafeteria' ? '分钟' : '天'}</span></div>
     <div className="sw-chart" aria-label={metric[1]}>
       <p className="sw-caption">{metric[1]}（{metric[2]}）</p>
       {run.results.map(item => <div className="sw-bar-row" key={item.id}><span title={item.name}>{item.name}</span><div className="sw-track"><div className={item.id === run.baseline ? 'sw-bar sw-baseline' : 'sw-bar'} style={{ width: `${(item.metrics[primary] ?? 0) / largest * 100}%` }} /></div><strong>{format(item.metrics[primary])}</strong></div>)}
@@ -151,6 +151,7 @@ function Panel() {
         <div className="sw-stack">
           <section className="sw-block"><div className="sw-heading"><h2>场景设置</h2></div>
             <div className="sw-scenes">{Object.entries(scenes).map(([id, item]) => <button key={id} type="button" aria-pressed={id === scene} onClick={() => { setScene(id); setError('') }}><strong>{item.name}</strong><span>{item.description}</span></button>)}</div>
+            <label className="sw-field">场景名称<input maxLength={80} placeholder={spec.name} value={draft.sceneName} onChange={e => update({ sceneName: e.target.value })} /></label>
             <div className="sw-fields"><NumberField label={spec.duration[0]} value={draft.duration} min={spec.duration[2]} max={spec.duration[3]} onChange={duration => update({ duration })} /><NumberField label="随机种子" value={draft.seed} min={0} max={4294967295} onChange={seed => update({ seed })} /></div>
           </section>
           <AgentEditor key={scene} draft={draft} update={update} />
