@@ -65,3 +65,14 @@
 .sw-error { color: var(--dsw-alias-state-error-primary, #b62a37); }
 @container (max-width: 670px) { .sw-grid { grid-template-columns: minmax(0,1fr); } }
 @container (max-width: 300px) { .sw-fields { grid-template-columns: minmax(0,1fr); } .sw-batch { grid-template-columns: 1fr 70px; } }
+
+.sw-configure { display: grid; gap: 8px; }
+.sw-configure h3 { margin: 0; font-size: 13px; }
+.sw-configure textarea { width: 100%; resize: vertical; min-height: 64px; padding: 7px 8px; border: 1px solid var(--sw-border); border-radius: 8px; background: var(--sw-bg); color: var(--sw-text); font: inherit; }
+.sw-configure textarea:focus-visible { outline: 2px solid var(--sw-brand); outline-offset: 2px; }
+.sw-configure dl, .sw-configure ul { margin: 0; }
+.sw-configure ul { padding-left: 18px; overflow-wrap: anywhere; }
+.sw-configure dl div { display: flex; justify-content: space-between; gap: 8px; }
+.sw-configure dd { margin: 0; }
+.sw-configure + .sw-manual { border-top: 1px solid var(--sw-border); padding-top: 10px; }
+.sw-manual summary { cursor: pointer; margin-bottom: 8px; }

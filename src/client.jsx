@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { createDraft, defaultSettings, makeAgents, scenes } from './scenes.mjs'
 import css from './panel.css'
+import { AgentConfigurator } from './configurator.jsx'
 
 const PANEL = 'simworld'
 const format = value => value === null ? '—' : value.toLocaleString('zh-CN', { maximumFractionDigits: 2 })
@@ -31,11 +32,12 @@ function AgentEditor({ draft, update }) {
 
   return <section className="sw-block">
     <div className="sw-heading"><h2>Agent 配置</h2><span>{draft.agents.length} 人 · {spec.role}</span></div>
-    <div className="sw-batch">
+    <AgentConfigurator draft={draft} spec={spec} apply={agents => { update({ agents }); setSelected(0) }} />
+    <details className="sw-manual"><summary>使用示例模板批量添加</summary><div className="sw-batch">
       <label className="sw-field">角色模板<select value={template} onChange={e => setTemplate(e.target.value)}>{Object.keys(spec.templates).map(name => <option key={name}>{name}</option>)}</select></label>
       <label className="sw-field">人数<input type="number" min="1" max="500" value={count} onChange={e => setCount(e.target.value === '' ? '' : e.target.valueAsNumber)} /></label>
       <button type="button" onClick={add} disabled={!Number.isInteger(count) || count < 1 || draft.agents.length + count > 500}>批量添加</button>
-    </div>
+    </div></details>
     <div className="sw-heading sw-divider"><label className="sw-field sw-grow">选择 Agent<select value={index} onChange={e => setSelected(Number(e.target.value))}>{draft.agents.map((item, i) => <option key={i} value={i}>{i + 1}. {item.name} · {item.template}</option>)}</select></label>
       <button type="button" disabled={draft.agents.length === 1} onClick={() => update({ agents: draft.agents.filter((_, i) => i !== index) })}>移除</button>
     </div>

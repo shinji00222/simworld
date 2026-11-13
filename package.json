@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-simworld",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "description": "DeepSeek Harness 模拟实验室",
@@ -13,6 +13,7 @@
   },
   "files": [
     "src/core.mjs",
+    "src/configure.mjs",
     "src/scenes.mjs",
     "src/host.mjs",
     "dist",
