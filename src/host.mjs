@@ -1,7 +1,9 @@
+import { runExperiment } from './world.mjs'
+import { configureWorld } from './world-configure.mjs'
 import { configureAgents } from './configure.mjs'
 import { runComparison } from './core.mjs'
 
-export { runComparison }
+export { runComparison, runExperiment }
 export const name = 'dsh-plugin-simworld'
 export const inject = ['webServer']
 
@@ -35,6 +37,8 @@ export function apply(ctx) {
     },
   })
 
+  ctx.effect(() => endpoint('/simworld/experiment', runExperiment), 'simworld: custom experiment')
+  ctx.effect(() => endpoint('/simworld/world-draft', (input, llm) => configureWorld(llm, input, AbortSignal.timeout(90000)), true), 'simworld: world draft')
   ctx.effect(() => endpoint('/simworld/run', runComparison), 'simworld: experiment endpoint')
   ctx.effect(() => endpoint('/simworld/models', async (_, llm) => {
     const catalogs = await Promise.allSettled(llm.listProviders().map(async provider => {

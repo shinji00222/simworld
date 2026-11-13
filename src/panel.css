@@ -76,3 +76,50 @@
 .sw-configure dd { margin: 0; }
 .sw-configure + .sw-manual { border-top: 1px solid var(--sw-border); padding-top: 10px; }
 .sw-manual summary { cursor: pointer; margin-bottom: 8px; }
+
+/* Inherit the DSH desktop palette, including the dark theme. */
+.sw-page { background: var(--dsw-alias-bg-layer-1, #f7f8fa); padding-top: 24px; }
+.sw-container { max-width: 1180px; }
+.sw-grid { grid-template-columns: minmax(0, 1fr) minmax(214px, 278px); gap: 16px; }
+.sw-single { max-width: 960px; margin-inline: auto; }
+.sw-block { background: var(--sw-bg); padding: clamp(14px, 2vw, 22px); }
+.sw-page :is(h2,h3) { margin: 0; font-weight: 600; color: var(--sw-text); }
+.sw-page h2 { font-size: 16px; }
+.sw-page h3 { font-size: 14px; }
+.sw-header { margin-bottom: 18px; gap: 12px; }
+.sw-title, .sw-toolbar, .sw-row, .sw-checks { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.sw-title { gap: 12px; flex-wrap: nowrap; }
+.sw-logo { display: grid; place-items: center; flex: 0 0 42px; height: 42px; border-radius: 11px; background: color-mix(in srgb, var(--sw-brand) 12%, var(--sw-bg)); color: var(--sw-brand); }
+.sw-steps { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; padding: 4px; margin-bottom: 16px; border: 1px solid var(--sw-border); background: var(--sw-bg); border-radius: 12px; }
+.sw-page .sw-steps button { display: flex; justify-content: center; align-items: center; gap: 8px; border-color: transparent; min-height: 39px; color: var(--sw-muted); }
+.sw-steps button span { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--sw-hover); font-size: 11px; }
+.sw-page .sw-steps button[aria-current=step] { color: var(--sw-brand); background: color-mix(in srgb, var(--sw-brand) 9%, var(--sw-bg)); font-weight: 600; }
+.sw-steps button[aria-current=step] span { background: var(--sw-brand); color: var(--dsw-alias-label-on-brand, #fff); }
+.sw-subnav { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--sw-border); }
+.sw-page .sw-subnav button { border-color: transparent; color: var(--sw-muted); }
+.sw-page .sw-subnav button[aria-pressed=true] { color: var(--sw-brand); background: color-mix(in srgb, var(--sw-brand) 9%, var(--sw-bg)); font-weight: 600; }
+.sw-map { display: block; width: 100%; max-height: 300px; border-radius: 10px; background-color: var(--sw-bg); border: 1px solid var(--sw-border); background-image: radial-gradient(var(--sw-border) 1px, transparent 1px); background-size: 15px 15px; }
+.sw-map line { stroke: var(--sw-brand); stroke-width: 2; opacity: .4; }
+.sw-map rect { fill: var(--sw-bg); stroke: var(--sw-border); }
+.sw-map rect.sw-exit { fill: color-mix(in srgb, var(--sw-brand) 11%, var(--sw-bg)); stroke: var(--sw-brand); }
+.sw-map text { font-size: 15px; fill: var(--sw-text); font-weight: 500; }
+.sw-item { border: 1px solid var(--sw-border); border-radius: 9px; padding: 9px 11px; overflow-wrap: anywhere; }
+.sw-page .sw-item-toggle { border-color: transparent; text-align: left; white-space: normal; padding-left: 0; min-height: 29px; font-weight: 600; }
+.sw-item-content { margin-top: 9px; }
+.sw-row { align-items: end; }
+.sw-row > .sw-field { flex: 1; min-width: min(100%, 130px); }
+.sw-row > .sw-radio { min-height: 33px; }
+.sw-step-footer { display: flex; justify-content: flex-end; gap: 8px; }
+.sw-error-box { padding: 10px 14px; background: var(--sw-bg); border: 1px solid var(--sw-border); border-radius: 8px; }
+.sw-page textarea { width: 100%; resize: vertical; padding: 7px 9px; border: 1px solid var(--sw-border); border-radius: 8px; background: var(--sw-bg); color: var(--sw-text); font: inherit; }
+.sw-page textarea:focus-visible { outline: 2px solid var(--sw-brand); outline-offset: 2px; }
+.sw-page pre { max-height: 230px; overflow: auto; }
+.sw-page summary { cursor: pointer; }
+.sw-page .sw-primary { color: var(--dsw-alias-label-on-brand, #fff); }
+.sw-page th, .sw-page td { padding: 8px; }
+@container (max-width: 760px) { .sw-grid { grid-template-columns: minmax(0,1fr); } }
+@container (max-width: 390px) {
+  .sw-page .sw-steps button { gap: 4px; padding: 5px; }
+  .sw-steps button span { width: 16px; height: 16px; }
+  .sw-fields { grid-template-columns: minmax(0,1fr); }
+}

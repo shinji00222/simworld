@@ -1,6 +1,10 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { createDraft, defaultSettings, makeAgents, scenes } from './scenes.mjs'
 import css from './panel.css'
+import { blankDraft, evacuationDraft } from './world-templates.mjs'
+import { validateExperiment } from './world.mjs'
+import { downloadConfig, post } from './lab-api.mjs'
+import { WorldEditor, PeopleEditor, ExperimentEditor, WorldResults, WorldDraftAssistant } from './world-panel.jsx'
 import { exportReport } from './report.mjs'
 import { AgentConfigurator } from './configurator.jsx'
 
@@ -120,52 +124,93 @@ function Results({ run, draft }) {
   </section>
 }
 
+
+const steps = ['世界', '人物', '方案', '结果']
+const templates = [
+  ['evacuation', '校园应急疏散', '出口封闭、通知与人群分流'],
+  ['custom', '自定义世界', '从空白搭建，或导入配置'],
+  ...Object.entries(scenes).map(([id, item]) => [id, item.name, item.description]),
+]
+
 function Panel() {
-  const [scene, setScene] = useState('cafeteria')
-  const [drafts, setDrafts] = useState(() => ({ cafeteria: createDraft('cafeteria'), market: createDraft('market') }))
-  const [report, setReport] = useState(null)
+  const [scene, setScene] = useState('evacuation')
+  const [drafts, setDrafts] = useState(() => ({ cafeteria: createDraft('cafeteria'), market: createDraft('market'), evacuation: evacuationDraft(), custom: blankDraft() }))
+  const [reports, setReports] = useState({})
+  const [step, setStep] = useState(0)
+  const [revision, setRevision] = useState(0)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  const file = useRef(null)
+  const page = useRef(null)
   const draft = drafts[scene]
+  const report = reports[scene]
   const spec = scenes[scene]
   const update = values => setDrafts(previous => ({ ...previous, [scene]: { ...previous[scene], ...values } }))
-
-  async function run(e) {
-    e.preventDefault()
+  const updateWorld = values => setDrafts(previous => ({ ...previous, [scene]: { ...previous[scene], world: { ...previous[scene].world, ...values } } }))
+  function navigate(next) { setStep(next); if (page.current) page.current.scrollTop = 0 }
+  function choose(id) { setScene(id); setError(''); navigate(0) }
+  function load(config) {
+    validateExperiment(config)
+    setDrafts(previous => ({ ...previous, custom: config }))
+    setRevision(i => i + 1)
+    choose('custom')
+  }
+  async function importFile(e) {
+    const selected = e.target.files[0]
+    e.target.value = ''
+    if (!selected) return
+    try {
+      if (selected.size > 25000000) throw new Error('文件超过 25 MB')
+      const data = JSON.parse(await selected.text())
+      load(data.config ?? data)
+    } catch (failure) { setError('导入失败：' + failure.message) }
+  }
+  async function run() {
     setPending(true)
     setError('')
     try {
-      const response = await fetch('/simworld/run', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-SimWorld-Request': '1' }, body: JSON.stringify(draft) })
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.error || '实验运行失败')
-      setReport({ draft, result })
-    } catch (failure) {
-      setError(failure.message)
-    } finally {
-      setPending(false)
-    }
+      if (!spec) validateExperiment(draft)
+      const result = await post(spec ? 'run' : 'experiment', draft)
+      setReports(previous => ({ ...previous, [scene]: { draft, config: draft, result } }))
+      navigate(3)
+    } catch (failure) { setError(failure.message) }
+    finally { setPending(false) }
   }
 
-  return <div className="sw-page">
+  return <div className="sw-page" ref={page}>
     <style>{css}</style>
-    <form className="sw-container" onSubmit={run}>
-      <header className="sw-header"><div><h1>模拟实验室</h1><p>配置场景和 Agent，从同一初始条件运行不同方案。</p></div><button className="sw-primary" disabled={pending} type="submit">{pending ? '运行中…' : '运行实验'}</button></header>
-      {error && <p role="alert" className="sw-error">{error}</p>}
-      <div className="sw-grid">
+    <main className="sw-container">
+      <header className="sw-header">
+        <div className="sw-title"><span className="sw-logo"><Icon size={22} /></span><div><h1>模拟实验室</h1><p>搭建世界，比较不同方案的结果。</p></div></div>
+        <div className="sw-toolbar">
+          <input ref={file} type="file" accept=".json,application/json" hidden onChange={importFile} />
+          <button type="button" disabled={pending} onClick={() => file.current.click()}>导入配置</button>
+          {!spec && <button type="button" onClick={() => downloadConfig('simworld-world', draft)}>导出配置</button>}
+          <button className="sw-primary" disabled={pending} type="button" onClick={run}>{pending ? '运行中…' : '运行实验'}</button>
+        </div>
+      </header>
+      <nav className="sw-steps" aria-label="实验步骤">{steps.map((label, i) => <button key={label} type="button" disabled={pending} aria-current={i === step ? 'step' : undefined} onClick={() => navigate(i)}><span>{i + 1}</span>{label}</button>)}</nav>
+      {error && <p role="alert" className="sw-error sw-error-box">{error}</p>}
+      <div className={step === 0 ? 'sw-grid' : 'sw-single'} key={scene + '-' + revision}>
         <div className="sw-stack">
-          <section className="sw-block"><div className="sw-heading"><h2>场景设置</h2></div>
-            <div className="sw-scenes">{Object.entries(scenes).map(([id, item]) => <button key={id} type="button" aria-pressed={id === scene} onClick={() => { setScene(id); setError('') }}><strong>{item.name}</strong><span>{item.description}</span></button>)}</div>
+          {step === 0 && (spec ? <section className="sw-block"><div className="sw-heading"><h2>世界设置</h2><span>经典模板</span></div><p className="sw-caption">{spec.description}</p>
             <label className="sw-field">场景名称<input maxLength={80} placeholder={spec.name} value={draft.sceneName} onChange={e => update({ sceneName: e.target.value })} /></label>
             <div className="sw-fields"><NumberField label={spec.duration[0]} value={draft.duration} min={spec.duration[2]} max={spec.duration[3]} onChange={duration => update({ duration })} /><NumberField label="随机种子" value={draft.seed} min={0} max={4294967295} onChange={seed => update({ seed })} /></div>
-          </section>
-          <AgentEditor key={scene} draft={draft} update={update} />
+          </section> : <WorldEditor world={draft.world} change={updateWorld} />)}
+          {step === 1 && (spec ? <AgentEditor draft={draft} update={update} /> : <PeopleEditor world={draft.world} change={updateWorld} />)}
+          {step === 2 && (spec ? <Plans draft={draft} update={update} /> : <ExperimentEditor config={draft} change={update} />)}
+          {step === 3 && (!report ? <section className="sw-block"><h2>实验结果</h2><p className="sw-empty">运行实验后，在这里查看方案对比和事件记录。</p></section> : <>
+            {report.draft !== draft && <p className="sw-caption sw-item">设置已修改。下方显示上次运行的结果，可重新运行刷新。</p>}
+            {spec ? <Results key={JSON.stringify(report.draft)} run={report.result} draft={report.draft} /> : <WorldResults key={JSON.stringify(report.draft)} report={report} />}
+          </>)}
+          {step < 3 && <div className="sw-step-footer">{step > 0 && <button type="button" disabled={pending} onClick={() => navigate(step - 1)}>上一步</button>}{step < 2 ? <button type="button" disabled={pending} className="sw-primary" onClick={() => navigate(step + 1)}>下一步：{steps[step + 1]}</button> : <button type="button" disabled={pending} className="sw-primary" onClick={run}>{pending ? '运行中…' : '运行实验'}</button>}</div>}
         </div>
-        <div className="sw-stack">
-          <Plans key={scene} draft={draft} update={update} />
-          {report?.draft === draft ? <Results key={JSON.stringify(draft)} run={report.result} draft={report.draft} /> : <section className="sw-block"><div className="sw-heading"><h2>实验结果</h2></div><p className="sw-empty">{report?.draft.scene === scene ? '设置已修改，运行实验以刷新结果。' : '运行实验后，在这里查看指标和事件记录。'}</p></section>}
-        </div>
+        {step === 0 && <aside className="sw-stack">
+          <section className="sw-block"><h2>选择世界</h2><div className="sw-scenes">{templates.map(([id, title, description]) => <button key={id} type="button" disabled={pending} aria-pressed={scene === id} onClick={() => choose(id)}><strong>{title}</strong><span>{description}</span></button>)}</div></section>
+          {!spec && <WorldDraftAssistant apply={load} />}
+        </aside>}
       </div>
-    </form>
+    </main>
   </div>
 }
 
