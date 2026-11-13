@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { createDraft, defaultSettings, makeAgents, scenes } from './scenes.mjs'
 import css from './panel.css'
+import { exportReport } from './report.mjs'
 import { AgentConfigurator } from './configurator.jsx'
 
 const PANEL = 'simworld'
@@ -84,7 +85,7 @@ function Plans({ draft, update }) {
   </section>
 }
 
-function Results({ run }) {
+function Results({ run, draft }) {
   const spec = scenes[run.scene]
   const [selected, setSelected] = useState(run.baseline)
   const [page, setPage] = useState(0)
@@ -96,7 +97,8 @@ function Results({ run }) {
   const pageSize = 20
 
   return <section className="sw-block" aria-label="实验结果">
-    <div className="sw-heading"><h2>实验结果</h2><span>{run.sceneName} · 种子 {run.seed} · {run.duration} {run.scene === 'cafeteria' ? '分钟' : '天'}</span></div>
+    <div className="sw-heading"><h2>实验结果</h2><button type="button" onClick={() => exportReport(run, draft)}>导出 Markdown</button></div>
+    <p className="sw-caption">{run.sceneName} · 种子 {run.seed} · {run.duration} {run.scene === 'cafeteria' ? '分钟' : '天'}</p>
     <div className="sw-chart" aria-label={metric[1]}>
       <p className="sw-caption">{metric[1]}（{metric[2]}）</p>
       {run.results.map(item => <div className="sw-bar-row" key={item.id}><span title={item.name}>{item.name}</span><div className="sw-track"><div className={item.id === run.baseline ? 'sw-bar sw-baseline' : 'sw-bar'} style={{ width: `${(item.metrics[primary] ?? 0) / largest * 100}%` }} /></div><strong>{format(item.metrics[primary])}</strong></div>)}
@@ -160,7 +162,7 @@ function Panel() {
         </div>
         <div className="sw-stack">
           <Plans key={scene} draft={draft} update={update} />
-          {report?.draft === draft ? <Results key={JSON.stringify(draft)} run={report.result} /> : <section className="sw-block"><div className="sw-heading"><h2>实验结果</h2></div><p className="sw-empty">{report?.draft.scene === scene ? '设置已修改，运行实验以刷新结果。' : '运行实验后，在这里查看指标和事件记录。'}</p></section>}
+          {report?.draft === draft ? <Results key={JSON.stringify(draft)} run={report.result} draft={report.draft} /> : <section className="sw-block"><div className="sw-heading"><h2>实验结果</h2></div><p className="sw-empty">{report?.draft.scene === scene ? '设置已修改，运行实验以刷新结果。' : '运行实验后，在这里查看指标和事件记录。'}</p></section>}
         </div>
       </div>
     </form>
